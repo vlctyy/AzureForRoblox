@@ -1,5 +1,5 @@
 -- Azure: Bloxstrap for Mobile
--- Fully optimized for mobile platforms with full functionality and proper logic
+-- discord.gg/azrdev (vanity lmao)
 
 -- Services
 local HttpService = game:GetService("HttpService")
@@ -42,7 +42,7 @@ end
 function Azure:DebugFFlags(Enabled)
     if Enabled then
         self:Notify("FFlag Debugger", "Debugging Enabled")
-        -- Example Flag Modification (Add your own as required)
+        -- Example Flag Modification (doesnt work yet)
         game:SetAttribute("DebugGreySky", true)
     else
         self:Notify("FFlag Debugger", "Debugging Disabled")
@@ -141,7 +141,7 @@ function AutoClick()
         repeat
             task.wait()
             if autoclickerEnabled then
-                -- Your autoclicker logic here
+                -- enable shit
             end
         until not autoclickerEnabled
     end)
@@ -228,7 +228,7 @@ Tabs.About:AddButton({
     end
 })
 
--- SaveManager (Optional Configurations)
+-- SaveManager (Optional Configurations) and blah blah
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 SaveManager:SetLibrary(Fluent)
 SaveManager:SetFolder("AzureConfigs")
