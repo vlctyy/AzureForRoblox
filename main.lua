@@ -170,7 +170,7 @@ Tabs.About:AddButton({
     Title = "Official Website",
     Description = "Click to visit the Azure website",
     Callback = function()
-        setclipboard("https://azurebloxstrap.dev")
+        setclipboard("https://getazure.framer.ai")
         Azure:Notify("Website", "URL copied to clipboard.")
     end
 })
