@@ -12,8 +12,8 @@ local Player = Players.LocalPlayer
 
 -- Variables
 local Azure = {}
-local Options = {} -- To store user preferences
-local Mobile = (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled) -- Detect mobile devices
+local Options = {}
+local Mobile = (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled)
 
 -- Compatibility Checks
 local function isAcrylicSupported()
@@ -29,40 +29,7 @@ function Azure:Notify(Title, Content, Duration)
     })
 end
 
-function Azure:FPSUnlocker(Enabled)
-    if Enabled then
-        setfpscap(240) -- Adjust as needed
-        self:Notify("FPS Unlocker", "FPS Unlocker Enabled")
-    else
-        setfpscap(60) -- Default FPS
-        self:Notify("FPS Unlocker", "FPS Unlocker Disabled")
-    end
-end
-
-function Azure:DebugFFlags(Enabled)
-    if Enabled then
-        self:Notify("FFlag Debugger", "Debugging Enabled")
-        -- Example Flag Modification (doesnt work yet)
-        game:SetAttribute("DebugGreySky", true)
-    else
-        self:Notify("FFlag Debugger", "Debugging Disabled")
-        game:SetAttribute("DebugGreySky", false)
-    end
-end
-
-function Azure:ApplyNoTextures(Enabled)
-    if Enabled then
-        for _, obj in pairs(Workspace:GetDescendants()) do
-            if obj:IsA("Texture") then
-                obj:Destroy()
-            end
-        end
-        self:Notify("No Textures", "Textures Removed for Performance")
-    else
-        self:Notify("No Textures", "Textures Reset (reload required)")
-    end
-end
-
+-- FPS Viewer Logic
 function Azure:FPSViewer(Enabled)
     if Enabled then
         local fpsLabel = Instance.new("TextLabel")
@@ -94,7 +61,7 @@ local Window = Fluent:CreateWindow({
     Size = UDim2.fromOffset(580, 460),
     Acrylic = isAcrylicSupported(),
     Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.LeftControl -- Toggle UI
+    MinimizeKey = Enum.KeyCode.LeftControl
 })
 
 -- Tabs
@@ -124,35 +91,44 @@ Tabs.Dashboard:AddButton({
 })
 
 -- Modules Tab Content
-local autoclicker
-local FPSBoost
-local GameFixer
-local Skybox
-
--- AutoClicker Logic
 local autoclickerEnabled = false
 local autoclickerCPS = 8
-local noclickdelayEnabled = false
 local AutoClickerThread
 
+-- Autoclicker Logic
 function AutoClick()
-    local firstClick = tick() + 0.1
     AutoClickerThread = task.spawn(function()
-        repeat
-            task.wait()
+        while autoclickerEnabled do
+            task.wait(1 / autoclickerCPS)
             if autoclickerEnabled then
-                -- enable shit
+                mouse1click() -- Simulates mouse click
             end
-        until not autoclickerEnabled
+        end
     end)
 end
 
-autoclicker = Tabs.Modules:AddButton({
-    Title = "Enable AutoClicker",
-    Description = "Hold attack button to automatically click",
-    Callback = function(callback)
-        autoclickerEnabled = callback
-        if autoclickerEnabled then
+Tabs.Modules:AddTextBox({
+    Title = "Autoclicker CPS",
+    Description = "Set clicks per second (default: 8)",
+    Default = "8",
+    Callback = function(text)
+        local cps = tonumber(text)
+        if cps and cps > 0 then
+            autoclickerCPS = cps
+        else
+            Azure:Notify("Autoclicker", "Invalid CPS value. Using default (8).")
+            autoclickerCPS = 8
+        end
+    end
+})
+
+Tabs.Modules:AddSwitch({
+    Title = "Enable Autoclicker",
+    Description = "Toggle autoclicker functionality",
+    Default = false,
+    Callback = function(enabled)
+        autoclickerEnabled = enabled
+        if enabled then
             AutoClick()
         else
             if AutoClickerThread then
@@ -163,12 +139,13 @@ autoclicker = Tabs.Modules:AddButton({
     end
 })
 
--- FPS Booster Logic
-FPSBoost = Tabs.Modules:AddButton({
+-- FPS Boost Logic
+Tabs.Modules:AddSwitch({
     Title = "FPS Boost",
     Description = "Boost FPS and remove unnecessary textures",
-    Callback = function(callback)
-        if callback then
+    Default = false,
+    Callback = function(enabled)
+        if enabled then
             setfpscap(240)
             Azure:Notify("FPS Boost", "FPS Boost Enabled")
         else
@@ -178,23 +155,23 @@ FPSBoost = Tabs.Modules:AddButton({
     end
 })
 
--- GameFixer Logic
-GameFixer = Tabs.Modules:AddButton({
+-- Game Fixer Logic
+Tabs.Modules:AddSwitch({
     Title = "Game Fixer",
     Description = "Fix common game bugs",
-    Callback = function(callback)
-        -- Logic to fix game bugs
-        debug.setconstant(bedwars.SwordController.swingSwordAtMouse, 23, callback and 'raycast' or 'Raycast')
-        debug.setupvalue(bedwars.SwordController.swingSwordAtMouse, 4, callback and bedwars.QueryUtil or workspace)
+    Default = false,
+    Callback = function(enabled)
+        debug.setconstant(bedwars.SwordController.swingSwordAtMouse, 23, enabled and "raycast" or "Raycast")
+        debug.setupvalue(bedwars.SwordController.swingSwordAtMouse, 4, enabled and bedwars.QueryUtil or workspace)
+        Azure:Notify("Game Fixer", enabled and "Enabled" or "Disabled")
     end
 })
 
 -- Skybox Logic
-Skybox = Tabs.Modules:AddButton({
+Tabs.Modules:AddButton({
     Title = "Change Skybox",
     Description = "Change to a custom Skybox",
     Callback = function()
-        -- Skybox change logic
         local sky = Instance.new("Sky")
         sky.SkyboxUp = "rbxassetid://8139676647"
         sky.SkyboxLf = "rbxassetid://8139676988"
@@ -207,34 +184,15 @@ Skybox = Tabs.Modules:AddButton({
     end
 })
 
--- Settings Tab Content
-Tabs.Settings:AddParagraph({
-    Title = "Settings",
-    Content = "Adjust configurations for Azure Utility."
-})
-
--- About Tab Content
-Tabs.About:AddParagraph({
-    Title = "About Azure",
-    Content = "Azure is the #1 mobile utility for Roblox."
-})
-
-Tabs.About:AddButton({
-    Title = "Join Discord",
-    Description = "Copy invite link to join the Azure community.",
-    Callback = function()
-        setclipboard("https://discord.com/invite/rPqV5Nhc8a")
-        Azure:Notify("Discord", "Invite link copied to clipboard.")
+-- FPS Viewer Module
+Tabs.Modules:AddSwitch({
+    Title = "FPS Viewer",
+    Description = "Enable or disable the FPS Viewer",
+    Default = false,
+    Callback = function(enabled)
+        Azure:FPSViewer(enabled)
     end
 })
 
--- SaveManager (Optional Configurations) and blah blah
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-SaveManager:SetLibrary(Fluent)
-SaveManager:SetFolder("AzureConfigs")
-SaveManager:BuildConfigSection(Tabs.Settings)
-SaveManager:LoadAutoloadConfig()
-
 -- Notification
 Azure:Notify("Azure Loaded", "All features are ready to use.", 8)
-
