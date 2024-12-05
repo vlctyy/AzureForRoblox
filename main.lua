@@ -1,5 +1,5 @@
 -- Azure: Bloxstrap for Mobile
--- discord.gg/azrdev (vanity lmao)
+-- discord.gg/azrdev
 
 -- Services
 local HttpService = game:GetService("HttpService")
@@ -8,6 +8,7 @@ local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
 local LightingService = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
 local Player = Players.LocalPlayer
 
 -- Variables
@@ -22,7 +23,7 @@ end
 
 -- Utility Functions
 function Azure:Notify(Title, Content, Duration)
-    game.StarterGui:SetCore("SendNotification", {
+    StarterGui:SetCore("SendNotification", {
         Title = Title,
         Text = Content,
         Duration = Duration or 5
@@ -91,86 +92,37 @@ Tabs.Dashboard:AddButton({
 })
 
 -- Modules Tab Content
-local autoclickerEnabled = false
-local autoclickerCPS = 8
-local AutoClickerThread
-
--- Autoclicker Logic
-function AutoClick()
-    AutoClickerThread = task.spawn(function()
-        while autoclickerEnabled do
-            task.wait(1 / autoclickerCPS)
-            if autoclickerEnabled then
-                mouse1click() -- Simulates mouse click
-            end
-        end
-    end)
-end
-
-Tabs.Modules:AddTextBox({
-    Title = "Autoclicker CPS",
-    Description = "Set clicks per second (default: 8)",
-    Default = "8",
-    Callback = function(text)
-        local cps = tonumber(text)
-        if cps and cps > 0 then
-            autoclickerCPS = cps
-        else
-            Azure:Notify("Autoclicker", "Invalid CPS value. Using default (8).")
-            autoclickerCPS = 8
-        end
-    end
-})
-
 Tabs.Modules:AddSwitch({
-    Title = "Enable Autoclicker",
-    Description = "Toggle autoclicker functionality",
+    Title = "Enable FPS Viewer",
+    Description = "Toggle the FPS Viewer",
     Default = false,
     Callback = function(enabled)
-        autoclickerEnabled = enabled
-        if enabled then
-            AutoClick()
-        else
-            if AutoClickerThread then
-                task.cancel(AutoClickerThread)
-                AutoClickerThread = nil
-            end
-        end
+        Azure:FPSViewer(enabled)
     end
 })
 
--- FPS Boost Logic
 Tabs.Modules:AddSwitch({
-    Title = "FPS Boost",
-    Description = "Boost FPS and remove unnecessary textures",
+    Title = "Enable FPS Boost",
+    Description = "Optimize performance and reduce textures for better FPS",
     Default = false,
     Callback = function(enabled)
-        if enabled then
-            setfpscap(240)
-            Azure:Notify("FPS Boost", "FPS Boost Enabled")
-        else
-            setfpscap(60)
-            Azure:Notify("FPS Boost", "FPS Boost Disabled")
-        end
+        setfpscap(enabled and 240 or 60)
+        Azure:Notify("FPS Boost", enabled and "Enabled" or "Disabled")
     end
 })
 
--- Game Fixer Logic
-Tabs.Modules:AddSwitch({
+Tabs.Modules:AddButton({
     Title = "Game Fixer",
-    Description = "Fix common game bugs",
-    Default = false,
-    Callback = function(enabled)
-        debug.setconstant(bedwars.SwordController.swingSwordAtMouse, 23, enabled and "raycast" or "Raycast")
-        debug.setupvalue(bedwars.SwordController.swingSwordAtMouse, 4, enabled and bedwars.QueryUtil or workspace)
-        Azure:Notify("Game Fixer", enabled and "Enabled" or "Disabled")
+    Description = "Fix common game bugs automatically",
+    Callback = function()
+        debug.setconstant(bedwars.SwordController.swingSwordAtMouse, 23, "raycast")
+        Azure:Notify("Game Fixer", "Fix applied successfully!")
     end
 })
 
--- Skybox Logic
 Tabs.Modules:AddButton({
     Title = "Change Skybox",
-    Description = "Change to a custom Skybox",
+    Description = "Apply a custom Skybox to the game environment",
     Callback = function()
         local sky = Instance.new("Sky")
         sky.SkyboxUp = "rbxassetid://8139676647"
@@ -180,19 +132,48 @@ Tabs.Modules:AddButton({
         sky.SkyboxDn = "rbxassetid://8139677253"
         sky.SkyboxRt = "rbxassetid://8139676842"
         sky.Parent = LightingService
-        Azure:Notify("Skybox", "Skybox Changed!")
+        Azure:Notify("Skybox", "Skybox changed!")
     end
 })
 
--- FPS Viewer Module
-Tabs.Modules:AddSwitch({
-    Title = "FPS Viewer",
-    Description = "Enable or disable the FPS Viewer",
-    Default = false,
+-- Settings Tab Content
+Tabs.Settings:AddSwitch({
+    Title = "Enable Acrylic UI",
+    Description = "Enable Acrylic effect (if supported)",
+    Default = true,
     Callback = function(enabled)
-        Azure:FPSViewer(enabled)
+        if enabled and isAcrylicSupported() then
+            Azure:Notify("Acrylic UI", "Acrylic UI enabled successfully!")
+        else
+            Azure:Notify("Acrylic UI", "Acrylic UI disabled.")
+        end
     end
 })
 
--- Notification
+Tabs.Settings:AddDropdown({
+    Title = "Select UI Theme",
+    List = { "Dark", "Light", "Custom" },
+    Default = "Dark",
+    Callback = function(selectedTheme)
+        Fluent:SetTheme(selectedTheme)
+        Azure:Notify("Theme Changed", "Selected theme: " .. selectedTheme)
+    end
+})
+
+-- About Tab Content
+Tabs.About:AddParagraph({
+    Title = "About Azure",
+    Content = "Azure is the ultimate Bloxstrap for mobile devices.\n\nDeveloped with <3 for mobile gamers who want the best Roblox experience."
+})
+
+Tabs.About:AddButton({
+    Title = "Official Website",
+    Description = "Click to visit the Azure website",
+    Callback = function()
+        setclipboard("https://azurebloxstrap.dev")
+        Azure:Notify("Website", "URL copied to clipboard.")
+    end
+})
+
+-- Final Notification
 Azure:Notify("Azure Loaded", "All features are ready to use.", 8)
