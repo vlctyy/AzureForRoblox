@@ -1,129 +1,130 @@
 -- Azure: Bloxstrap for Mobile
 -- discord.gg/azrdev
 
--- Services
-local HttpService = game:GetService("HttpService")
-local UserInputService = game:GetService("UserInputService")
-local Workspace = game:GetService("Workspace")
-local Players = game:GetService("Players")
-local LightingService = game:GetService("Lighting")
-local RunService = game:GetService("RunService")
-local StarterGui = game:GetService("StarterGui")
-local Player = Players.LocalPlayer
-
--- Variables
-local Azure = {}
-local Options = {}
-local Mobile = (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled)
-
--- Compatibility Checks
-local function isAcrylicSupported()
-    return not (UserInputService:GetPlatform() == Enum.Platform.XBox360 or UserInputService:GetPlatform() == Enum.Platform.PS4)
-end
-
--- Utility Functions
-function Azure:Notify(Title, Content, Duration)
-    StarterGui:SetCore("SendNotification", {
-        Title = Title,
-        Text = Content,
-        Duration = Duration or 5
-    })
-end
-
--- FPS Viewer Logic
-function Azure:FPSViewer(Enabled)
-    if Enabled then
-        local fpsLabel = Instance.new("TextLabel")
-        fpsLabel.Size = UDim2.new(0, 200, 0, 50)
-        fpsLabel.Position = UDim2.new(0, 10, 0, 10)
-        fpsLabel.BackgroundTransparency = 0.5
-        fpsLabel.TextScaled = true
-        fpsLabel.Parent = game.CoreGui
-        RunService.RenderStepped:Connect(function()
-            fpsLabel.Text = "FPS: " .. math.floor(1 / RunService.RenderStepped:Wait())
-        end)
-        self:Notify("FPS Viewer", "Enabled")
-    else
-        for _, gui in pairs(game.CoreGui:GetChildren()) do
-            if gui:IsA("TextLabel") and gui.Text:find("FPS:") then
-                gui:Destroy()
-            end
-        end
-        self:Notify("FPS Viewer", "Disabled")
-    end
-end
-
--- UI Setup
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local Window = Fluent:CreateWindow({
-    Title = "Azure Utility",
-    SubTitle = "Bloxstrap for Mobile",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 460),
-    Acrylic = isAcrylicSupported(),
-    Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.LeftControl
-})
-
--- Tabs
-local Tabs = {
-    Dashboard = Window:AddTab({ Title = "Dashboard", Icon = "home" }),
-    Modules = Window:AddTab({ Title = "Modules", Icon = "tool" }),
-    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" }),
-    About = Window:AddTab({ Title = "About", Icon = "info" })
+getgenv().Config = {
+    Invite = "azrdev",
+    Version = "1.0",
 }
 
--- Dashboard Tab Content
-Tabs.Dashboard:AddParagraph({
-    Title = "Changelog",
-    Content = "Latest updates and changes in Azure Bloxstrap for Mobile.\n" ..
-              "🟢 Version 1.0 - Initial release\n" ..
-              "🟡 Version 1.1 - Bug fixes\n" ..
-              "🔴 Version 1.2 - Major update pending"
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/drillygzzly/Other/main/1"))()
+
+library:init()
+
+local Window = library.NewWindow({
+    title = "Azure Utility",
+    size = UDim2.new(0, 600, 0, 650)
 })
 
-Tabs.Dashboard:AddButton({
-    Title = "Join Discord",
-    Description = "Click to join the official Discord server",
-    Callback = function()
+local tabs = {
+    Dashboard = Window:AddTab("Dashboard"),
+    Modules = Window:AddTab("Modules"),
+    Settings = library:CreateSettingsTab(Window),
+    About = Window:AddTab("About"),
+}
+
+-- Section setup
+local sections = {
+    DashboardLeft = tabs.Dashboard:AddSection("Changelog", 1),
+    ModulesLeft = tabs.Modules:AddSection("Performance Tools", 1),
+    ModulesRight = tabs.Modules:AddSection("Customizations", 2),
+    SettingsLeft = tabs.Settings:AddSection("Settings", 1),
+    AboutLeft = tabs.About:AddSection("About Azure", 1),
+}
+
+-- Dashboard content
+sections.DashboardLeft:AddText({
+    enabled = true,
+    text = "🟢 Version 1.0 - Initial release\n" ..
+           "🟡 Version 1.1 - Bug fixes\n" ..
+           "🔴 Version 1.2 - Major update pending",
+    flag = "Changelog_Text",
+    risky = false,
+})
+
+sections.DashboardLeft:AddButton({
+    text = "Join Discord",
+    tooltip = "Click to copy the invite link to your clipboard",
+    callback = function()
         setclipboard("https://discord.com/invite/rPqV5Nhc8a")
-        Azure:Notify("Discord", "Invite link copied to clipboard.")
-    end
+        library:SendNotification("Discord Invite Copied!", 5, Color3.new(0, 255, 0))
+    end,
 })
 
--- Modules Tab Content
-Tabs.Modules:AddSwitch({
-    Title = "Enable FPS Viewer",
-    Description = "Toggle the FPS Viewer",
-    Default = false,
-    Callback = function(enabled)
-        Azure:FPSViewer(enabled)
-    end
-})
-
-Tabs.Modules:AddSwitch({
-    Title = "Enable FPS Boost",
-    Description = "Optimize performance and reduce textures for better FPS",
-    Default = false,
-    Callback = function(enabled)
+-- Modules: FPS Unlocker
+sections.ModulesLeft:AddToggle({
+    text = "FPS Unlocker",
+    flag = "FPS_Unlocker",
+    tooltip = "Enable or disable the FPS unlocker",
+    risky = true,
+    callback = function(enabled)
         setfpscap(enabled and 240 or 60)
-        Azure:Notify("FPS Boost", enabled and "Enabled" or "Disabled")
-    end
+        library:SendNotification("FPS Unlocker " .. (enabled and "Enabled" or "Disabled"), 5, Color3.new(0, 255, 0))
+    end,
 })
 
-Tabs.Modules:AddButton({
-    Title = "Game Fixer",
-    Description = "Fix common game bugs automatically",
-    Callback = function()
-        debug.setconstant(bedwars.SwordController.swingSwordAtMouse, 23, "raycast")
-        Azure:Notify("Game Fixer", "Fix applied successfully!")
-    end
+-- Modules: FPS Viewer
+sections.ModulesLeft:AddToggle({
+    text = "FPS Viewer",
+    flag = "FPS_Viewer",
+    tooltip = "Show the current FPS on screen",
+    risky = false,
+    callback = function(enabled)
+        if enabled then
+            local fpsLabel = Instance.new("TextLabel")
+            fpsLabel.Size = UDim2.new(0, 200, 0, 50)
+            fpsLabel.Position = UDim2.new(0, 10, 0, 10)
+            fpsLabel.BackgroundTransparency = 0.5
+            fpsLabel.TextScaled = true
+            fpsLabel.Text = "FPS: ..."
+            fpsLabel.Parent = game.CoreGui
+            game:GetService("RunService").RenderStepped:Connect(function()
+                fpsLabel.Text = "FPS: " .. math.floor(1 / game:GetService("RunService").RenderStepped:Wait())
+            end)
+        else
+            for _, v in pairs(game.CoreGui:GetChildren()) do
+                if v:IsA("TextLabel") and v.Text:find("FPS:") then
+                    v:Destroy()
+                end
+            end
+        end
+    end,
 })
 
-Tabs.Modules:AddButton({
-    Title = "Change Skybox",
-    Description = "Apply a custom Skybox to the game environment",
-    Callback = function()
+-- Modules: AutoClicker
+sections.ModulesLeft:AddBox({
+    text = "AutoClicker CPS",
+    input = "8",
+    flag = "AutoClicker_CPS",
+    tooltip = "Set the clicks per second",
+    risky = false,
+    callback = function(value)
+        getgenv().CPS = tonumber(value)
+    end,
+})
+
+sections.ModulesLeft:AddToggle({
+    text = "Enable AutoClicker",
+    flag = "AutoClicker",
+    tooltip = "Automatically click at the defined CPS",
+    risky = false,
+    callback = function(enabled)
+        getgenv().AutoClickerEnabled = enabled
+        if enabled then
+            while getgenv().AutoClickerEnabled do
+                task.wait(1 / (getgenv().CPS or 8))
+                mouse1click()
+            end
+        end
+    end,
+})
+
+-- Modules: Skybox
+sections.ModulesRight:AddButton({
+    text = "Change Skybox",
+    tooltip = "Set a custom skybox for the game",
+    risky = false,
+    callback = function()
+        local Lighting = game:GetService("Lighting")
         local sky = Instance.new("Sky")
         sky.SkyboxUp = "rbxassetid://8139676647"
         sky.SkyboxLf = "rbxassetid://8139676988"
@@ -131,49 +132,28 @@ Tabs.Modules:AddButton({
         sky.SkyboxBk = "rbxassetid://8139677359"
         sky.SkyboxDn = "rbxassetid://8139677253"
         sky.SkyboxRt = "rbxassetid://8139676842"
-        sky.Parent = LightingService
-        Azure:Notify("Skybox", "Skybox changed!")
-    end
+        sky.Parent = Lighting
+        library:SendNotification("Skybox Changed!", 5, Color3.new(0, 255, 255))
+    end,
 })
 
--- Settings Tab Content
-Tabs.Settings:AddSwitch({
-    Title = "Enable Acrylic UI",
-    Description = "Enable Acrylic effect (if supported)",
-    Default = true,
-    Callback = function(enabled)
-        if enabled and isAcrylicSupported() then
-            Azure:Notify("Acrylic UI", "Acrylic UI enabled successfully!")
-        else
-            Azure:Notify("Acrylic UI", "Acrylic UI disabled.")
-        end
-    end
+-- About content
+sections.AboutLeft:AddText({
+    text = "Azure is the #1 mobile utility for Roblox. Built for performance and customization.",
+    flag = "About_Text",
+    risky = false,
 })
 
-Tabs.Settings:AddDropdown({
-    Title = "Select UI Theme",
-    List = { "Dark", "Light", "Custom" },
-    Default = "Dark",
-    Callback = function(selectedTheme)
-        Fluent:SetTheme(selectedTheme)
-        Azure:Notify("Theme Changed", "Selected theme: " .. selectedTheme)
-    end
+sections.AboutLeft:AddButton({
+    text = "Join Discord",
+    tooltip = "Click to copy the invite link",
+    callback = function()
+        setclipboard("https://discord.com/invite/rPqV5Nhc8a")
+        library:SendNotification("Discord Invite Copied!", 5, Color3.new(0, 255, 0))
+    end,
 })
 
--- About Tab Content
-Tabs.About:AddParagraph({
-    Title = "About Azure",
-    Content = "Azure is the ultimate Bloxstrap for mobile devices.\n\nDeveloped with <3 for mobile gamers who want the best Roblox experience."
-})
+-- Initialize the window
+Window:SetOpen(true)
 
-Tabs.About:AddButton({
-    Title = "Official Website",
-    Description = "Click to visit the Azure website",
-    Callback = function()
-        setclipboard("https://getazure.framer.ai")
-        Azure:Notify("Website", "URL copied to clipboard.")
-    end
-})
-
--- Final Notification
-Azure:Notify("Azure Loaded", "All features are ready to use.", 8)
+library:SendNotification("Azure Initialized", 5, Color3.new(0, 255, 0))
