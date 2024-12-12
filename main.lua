@@ -3,7 +3,7 @@
 
 getgenv().Config = {
     Invite = "rPqV5Nhc8a",
-    Version = "1.8",
+    Version = "1.9",
 }
 
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/drillygzzly/Other/main/ArrayFieldLib"))()
@@ -32,6 +32,7 @@ local sections = {
     FPSBoost = tabs.Modules:Section("FPS Boost"),
     Settings = tabs.Settings:Section("Settings"),
     About = tabs.About:Section("About Azure"),
+    ChatTag = tabs.Modules:Section("Chat Tag"),
 }
 
 -- Dashboard content
@@ -187,6 +188,30 @@ sections.FPSBoost:Toggle("FPS Unlocker", false, function(Callback)
         setfpscap(999)
     end
 end)
+
+-- Chat Tag Module
+sections.ChatTag:Toggle("Azure User Chat Tag", false, function(Callback)
+    AzureTagEnabled = Callback
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+    local TextChatService = game:GetService("TextChatService")
+
+    TextChatService.OnIncomingMessage = function(message)
+        local properties = Instance.new("TextChatMessageProperties")
+        if message.TextSource then
+            local getidplayer = Players:GetPlayerByUserId(message.TextSource.UserId)
+            if getidplayer and getidplayer.UserId == LocalPlayer.UserId then
+                if AzureTagEnabled then
+                    properties.PrefixText = "<font color='#1E90FF'>[AZURE USER]</font> " .. message.PrefixText
+                else
+                    properties.PrefixText = message.PrefixText
+                end
+            end
+        end
+        return properties
+    end
+end)
+
 
 -- About content
 sections.About:Label("Azure is the #1 mobile utility for Roblox. Built for performance and customization.")
