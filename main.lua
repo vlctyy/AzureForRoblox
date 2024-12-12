@@ -2,7 +2,7 @@
 -- discord.gg/azrdev
 
 getgenv().Config = {
-    Invite = "azrdev",
+    Invite = "rPqV5Nhc8a",
     Version = "1.0",
 }
 
