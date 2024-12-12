@@ -3,7 +3,7 @@
 
 getgenv().Config = {
     Invite = "rPqV5Nhc8a",
-    Version = "1.0",
+    Version = "1.8",
 }
 
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/drillygzzly/Other/main/ArrayFieldLib"))()
