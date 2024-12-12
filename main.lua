@@ -6,125 +6,107 @@ getgenv().Config = {
     Version = "1.0",
 }
 
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/drillygzzly/Other/main/1"))()
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/drillygzzly/Other/main/ArrayFieldLib"))()
 
 library:init()
 
-local Window = library.NewWindow({
-    title = "Azure Utility",
-    size = UDim2.new(0, 600, 0, 650)
+local Window = library:New({
+    Name = "Azure Utility",
+    Size = UDim2.new(0, 600, 0, 650),
+    SideBar = true,
+    SearchBar = true,
 })
 
 local tabs = {
-    Dashboard = Window:AddTab("Dashboard"),
-    Modules = Window:AddTab("Modules"),
-    Settings = library:CreateSettingsTab(Window),
-    About = Window:AddTab("About"),
+    Dashboard = Window:Tab("Dashboard"),
+    Modules = Window:Tab("Modules"),
+    Settings = Window:Tab("Settings"),
+    About = Window:Tab("About"),
 }
 
 -- Section setup
 local sections = {
-    DashboardLeft = tabs.Dashboard:AddSection("Changelog", 1),
-    ModulesLeft = tabs.Modules:AddSection("Performance Tools", 1),
-    ModulesRight = tabs.Modules:AddSection("Customizations", 2),
-    SettingsLeft = tabs.Settings:AddSection("Settings", 1),
-    AboutLeft = tabs.About:AddSection("About Azure", 1),
+    Dashboard = tabs.Dashboard:Section("Changelog"),
+    ModulesPerformance = tabs.Modules:Section("Performance Tools"),
+    ModulesCustomization = tabs.Modules:Section("Customizations"),
+    FPSBoost = tabs.Modules:Section("FPS Boost"),
+    Settings = tabs.Settings:Section("Settings"),
+    About = tabs.About:Section("About Azure"),
 }
 
 -- Dashboard content
-sections.DashboardLeft:AddText({
-    enabled = true,
-    text = "🟢 Version 1.0 - Initial release\n" ..
-           "🟡 Version 1.1 - Bug fixes\n" ..
-           "🔴 Version 1.2 - Major update pending",
-    flag = "Changelog_Text",
-    risky = false,
-})
+sections.Dashboard:Label("🟢 Version 1.0 - Initial release\n" ..
+                         "🟡 Version 1.1 - Bug fixes\n" ..
+                         "🔴 Version 1.2 - Major update pending")
 
-sections.DashboardLeft:AddButton({
-    text = "Join Discord",
-    tooltip = "Click to copy the invite link to your clipboard",
-    callback = function()
-        setclipboard("https://discord.com/invite/rPqV5Nhc8a")
-        library:SendNotification("Discord Invite Copied!", 5, Color3.new(0, 255, 0))
-    end,
-})
+sections.Dashboard:Button("Join Discord", function()
+    setclipboard("https://discord.com/invite/rPqV5Nhc8a")
+    library:Notify("Discord Invite Copied!", "success")
+end)
 
--- Modules: FPS Unlocker
-sections.ModulesLeft:AddToggle({
-    text = "FPS Unlocker",
-    flag = "FPS_Unlocker",
-    tooltip = "Enable or disable the FPS unlocker",
-    risky = true,
-    callback = function(enabled)
-        setfpscap(enabled and 240 or 60)
-        library:SendNotification("FPS Unlocker " .. (enabled and "Enabled" or "Disabled"), 5, Color3.new(0, 255, 0))
-    end,
-})
+-- Modules: FPS and Ping Viewer
+sections.ModulesPerformance:Toggle("FPS Viewer", false, function(enabled)
+    if enabled then
+        local fpsLabel = Instance.new("TextLabel")
+        fpsLabel.Size = UDim2.new(0, 200, 0, 50)
+        fpsLabel.Position = UDim2.new(0, 10, 0, 10)
+        fpsLabel.BackgroundTransparency = 0.5
+        fpsLabel.TextScaled = true
+        fpsLabel.Text = "FPS: ..."
+        fpsLabel.Parent = game.CoreGui
 
--- Modules: FPS Viewer
-sections.ModulesLeft:AddToggle({
-    text = "FPS Viewer",
-    flag = "FPS_Viewer",
-    tooltip = "Show the current FPS on screen",
-    risky = false,
-    callback = function(enabled)
-        if enabled then
-            local fpsLabel = Instance.new("TextLabel")
-            fpsLabel.Size = UDim2.new(0, 200, 0, 50)
-            fpsLabel.Position = UDim2.new(0, 10, 0, 10)
-            fpsLabel.BackgroundTransparency = 0.5
-            fpsLabel.TextScaled = true
-            fpsLabel.Text = "FPS: ..."
-            fpsLabel.Parent = game.CoreGui
-            game:GetService("RunService").RenderStepped:Connect(function()
-                fpsLabel.Text = "FPS: " .. math.floor(1 / game:GetService("RunService").RenderStepped:Wait())
-            end)
-        else
-            for _, v in pairs(game.CoreGui:GetChildren()) do
-                if v:IsA("TextLabel") and v.Text:find("FPS:") then
-                    v:Destroy()
-                end
+        local pingLabel = Instance.new("TextLabel")
+        pingLabel.Size = UDim2.new(0, 200, 0, 50)
+        pingLabel.Position = UDim2.new(0, 10, 0, 70)
+        pingLabel.BackgroundTransparency = 0.5
+        pingLabel.TextScaled = true
+        pingLabel.Text = "Ping: ..."
+        pingLabel.Parent = game.CoreGui
+
+        local fpsConnection = game:GetService("RunService").RenderStepped:Connect(function()
+            fpsLabel.Text = "FPS: " .. math.floor(1 / game:GetService("RunService").RenderStepped:Wait())
+        end)
+
+        local pingConnection = game:GetService("RunService").Heartbeat:Connect(function()
+            pingLabel.Text = "Ping: " .. math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()) .. " ms"
+        end)
+
+        getgenv().FPSPingConnections = {fpsConnection, pingConnection}
+    else
+        for _, v in pairs(game.CoreGui:GetChildren()) do
+            if v:IsA("TextLabel") and (v.Text:find("FPS:") or v.Text:find("Ping:")) then
+                v:Destroy()
             end
         end
-    end,
-})
+
+        if getgenv().FPSPingConnections then
+            for _, connection in pairs(getgenv().FPSPingConnections) do
+                connection:Disconnect()
+            end
+            getgenv().FPSPingConnections = nil
+        end
+    end
+end)
 
 -- Modules: AutoClicker
-sections.ModulesLeft:AddBox({
-    text = "AutoClicker CPS",
-    input = "8",
-    flag = "AutoClicker_CPS",
-    tooltip = "Set the clicks per second",
-    risky = false,
-    callback = function(value)
-        getgenv().CPS = tonumber(value)
-    end,
-})
+sections.ModulesPerformance:Box("AutoClicker CPS", "8", function(value)
+    getgenv().CPS = tonumber(value)
+end)
 
-sections.ModulesLeft:AddToggle({
-    text = "Enable AutoClicker",
-    flag = "AutoClicker",
-    tooltip = "Automatically click at the defined CPS",
-    risky = false,
-    callback = function(enabled)
-        getgenv().AutoClickerEnabled = enabled
-        if enabled then
-            while getgenv().AutoClickerEnabled do
-                task.wait(1 / (getgenv().CPS or 8))
-                mouse1click()
-            end
+sections.ModulesPerformance:Toggle("Enable AutoClicker", false, function(enabled)
+    getgenv().AutoClickerEnabled = enabled
+    if enabled then
+        while getgenv().AutoClickerEnabled do
+            task.wait(1 / (getgenv().CPS or 8))
+            mouse1click()
         end
-    end,
-})
+    end
+end)
 
 -- Modules: Skybox
-sections.ModulesRight:AddButton({
-    text = "Change Skybox",
-    tooltip = "Set a custom skybox for the game",
-    risky = false,
-    callback = function()
-        local Lighting = game:GetService("Lighting")
+sections.ModulesCustomization:Dropdown("Custom Skybox", {"Winter Skybox", "Galaxy Sky"}, function(selection)
+    local Lighting = game:GetService("Lighting")
+    if selection == "Winter Skybox" then
         local sky = Instance.new("Sky")
         sky.SkyboxUp = "rbxassetid://8139676647"
         sky.SkyboxLf = "rbxassetid://8139676988"
@@ -133,27 +115,85 @@ sections.ModulesRight:AddButton({
         sky.SkyboxDn = "rbxassetid://8139677253"
         sky.SkyboxRt = "rbxassetid://8139676842"
         sky.Parent = Lighting
-        library:SendNotification("Skybox Changed!", 5, Color3.new(0, 255, 255))
-    end,
-})
+    elseif selection == "Galaxy Sky" then
+        local sky = Instance.new("Sky")
+        local ID = 8281961896
+        sky.SkyboxBk = "http://www.roblox.com/asset/?id="..ID
+        sky.SkyboxDn = "http://www.roblox.com/asset/?id="..ID
+        sky.SkyboxFt = "http://www.roblox.com/asset/?id="..ID
+        sky.SkyboxLf = "http://www.roblox.com/asset/?id="..ID
+        sky.SkyboxRt = "http://www.roblox.com/asset/?id="..ID
+        sky.SkyboxUp = "http://www.roblox.com/asset/?id="..ID
+        sky.Parent = Lighting
+    end
+end)
+
+-- FPS Boost Module
+sections.FPSBoost:Toggle("FPS Boost", false, function(Callback)
+    FPSBoostEnabled = Callback
+    if FPSBoostEnabled then
+        fpsboosttextures()
+        for i,v in next, (bedwars["KillEffectController"].killEffects) do 
+            basetextures[i] = v
+            bedwars["KillEffectController"].killEffects[i] = {new = function(char) return {onKill = function() end, isPlayDefaultKillEffect = function() return char == LocalPlayer.Character end} end}
+        end
+        old = bedwars["HighlightController"].highlight
+        old2 = getmetatable(bedwars["StopwatchController"]).tweenOutGhost
+        getmetatable(bedwars["StopwatchController"]).tweenOutGhost = function(p17, p18)
+            p18:Destroy()
+        end
+        bedwars["HighlightController"].highlight = function() end
+    else
+        for i,v in next, (basetextures) do 
+            bedwars["KillEffectController"].killEffects[i] = v
+        end
+        fpsboosttextures()
+        debug.setupvalue(bedwars["KillEffectController"].KnitStart, 2, bedwars["ClientSyncEvents"])
+        bedwars["HighlightController"].highlight = old
+        getmetatable(bedwars["StopwatchController"]).tweenOutGhost = old2
+        old = nil
+        old2 = nil
+    end
+end)
+
+sections.FPSBoost:Toggle("Remove Textures", true, function(Callback)
+    FPSBoostTextureEnabled = Callback
+end)
+
+local function fpsboosttextures()
+    task.spawn(function()
+        repeat task.wait() until GetMatchState() ~= 0
+        for i,v in next, (collectionService:GetTagged('block')) do
+            if v:GetAttribute('PlacedByUserId') == 0 then
+                v.Material = FPSBoostEnabled and FPSBoostTextureEnabled and Enum.Material.SmoothPlastic
+                basetextures[v] = basetextures[v] or v.MaterialVariant
+                v.MaterialVariant = FPSBoostEnabled and FPSBoostTextureEnabled and '' or basetextures[v]
+                for i2,v2 in next, (v:GetChildren()) do 
+                    pcall(function() 
+                        v2.Material = FPSBoostEnabled and FPSBoostTextureEnabled and Enum.Material.SmoothPlastic
+                        basetextures[v2] = basetextures[v2] or v2.MaterialVariant
+                        v2.MaterialVariant = FPSBoostEnabled and FPSBoostTextureEnabled and '' or basetextures[v2]
+                    end)
+                end
+            end
+        end
+    end)
+end
+
+-- FPS Unlocker Module
+sections.FPSBoost:Toggle("FPS Unlocker", false, function(Callback)
+    EnabledFPS = Callback
+    if EnabledFPS then
+        setfpscap(999)
+    end
+end)
 
 -- About content
-sections.AboutLeft:AddText({
-    text = "Azure is the #1 mobile utility for Roblox. Built for performance and customization.",
-    flag = "About_Text",
-    risky = false,
-})
+sections.About:Label("Azure is the #1 mobile utility for Roblox. Built for performance and customization.")
 
-sections.AboutLeft:AddButton({
-    text = "Join Discord",
-    tooltip = "Click to copy the invite link",
-    callback = function()
-        setclipboard("https://discord.com/invite/rPqV5Nhc8a")
-        library:SendNotification("Discord Invite Copied!", 5, Color3.new(0, 255, 0))
-    end,
-})
+sections.About:Button("Join Discord", function()
+    setclipboard("https://discord.com/invite/rPqV5Nhc8a")
+    library:Notify("Discord Invite Copied!", "success")
+end)
 
--- Initialize the window
-Window:SetOpen(true)
-
-library:SendNotification("Azure Initialized", 5, Color3.new(0, 255, 0))
+library:Notify("Azure Initialized", "success")
