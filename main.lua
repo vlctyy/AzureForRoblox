@@ -6,7 +6,7 @@ local ArrayField = loadstring(game:HttpGet('https://raw.githubusercontent.com/UI
 local Window = ArrayField:CreateWindow({
     Name = "Azure Utility",
     LoadingTitle = "Azure Utility",
-    LoadingSubtitle = "by drillygzzly",
+    LoadingSubtitle = "by wavezq",
         ConfigurationSaving = {
             Enabled = false,
         },
