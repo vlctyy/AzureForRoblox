@@ -15,8 +15,26 @@ local Window = ArrayField:CreateWindow({
             Invite = "rPqV5Nhc8a",
             RememberJoins = true
         },
-     KeySystem = false,
+     KeySystem = true, -- Enable the Key System
+     KeySettings = {
+        Title = "Azure Utility",
+        Subtitle = "Key System",
+        Note = "Complete the Linkvertise to get the key", -- Custom Note to Explain Key is from Linkvertise
+        FileName = "AzureKeys", -- Change the key file name if you want
+        SaveKey = false, -- Don't save the key
+        GrabKeyFromSite = true, -- Set to true to Grab the key from linkvertise
+        Key = "https://link-target.net/1267303/key-system-for-azure", -- Set the linkvertise url
+        Actions = {
+            [1] = {
+                Text = 'Click here to copy the key link',
+                    OnPress = function()
+                        setclipboard("https://link-target.net/1267303/key-system-for-azure") -- copies link
+                    end,
+            }
+        },
+    }
 })
+
 
 local tabs = {
     Dashboard = Window:CreateTab("Dashboard"),
