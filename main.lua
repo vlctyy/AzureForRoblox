@@ -184,7 +184,7 @@ local Skyboxes = {
         ["SkyboxRt"] = "rbxassetid://153767231",
         ["SkyboxUp"] = "rbxassetid://153767288"
     },
-     ["Neptune"] = {
+    ["Neptune"] = {
         ["SkyboxBk"] = "rbxassetid://218955819",
         ["SkyboxDn"] = "rbxassetid://218953419",
         ["SkyboxFt"] = "rbxassetid://218954524",
@@ -215,9 +215,16 @@ local Skyboxes = {
         ["SkyboxLf"] = "rbxassetid://1398423035",
         ["SkyboxRt"] = "rbxassetid://1398423150",
         ["SkyboxUp"] = "rbxassetid://1398423360"
+    },
+    ["Galaxy Sky"] = {
+        ["SkyboxBk"] = "http://www.roblox.com/asset/?id=8281961896",
+        ["SkyboxDn"] = "http://www.roblox.com/asset/?id=8281961896",
+        ["SkyboxFt"] = "http://www.roblox.com/asset/?id=8281961896",
+        ["SkyboxLf"] = "http://www.roblox.com/asset/?id=8281961896",
+        ["SkyboxRt"] = "http://www.roblox.com/asset/?id=8281961896",
+        ["SkyboxUp"] = "http://www.roblox.com/asset/?id=8281961896"
     }
 }
-
 
 local skybox_names = {}
 for k,v in pairs(Skyboxes) do
