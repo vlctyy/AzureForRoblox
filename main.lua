@@ -58,16 +58,170 @@ tabs.Dashboard:CreateButton({
 
 -- Modules: Performance Tools Section
 local modulesPerformanceSection = tabs.Modules:CreateSection("Performance Tools", true)
-local fpsPingToggle
-fpsPingToggle = tabs.Modules:CreateToggle({
+
+-- FPS Viewer Dropdown
+local fpsViewerDropdown
+local fpsLabel, pingLabel, fpsConnection, pingConnection -- Variables for the original FPS viewer
+
+-- Load the UI for FPS Viewer BETA
+local FPSUI = game:GetObjects("rbxassetid://8524217009")[1]
+if game.CoreGui:FindFirstChild("FPSCounter") then
+	game.CoreGui:FindFirstChild("FPSCounter"):Destroy()
+end
+FPSUI.Parent = game.CoreGui
+FPSUI.Main.Position = UDim2.new(0, 959,0, 49)
+FPSUI.Main.BackgroundTransparency = 1
+FPSUI.Main.Title.TextTransparency = 1
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local DR = false
+
+-- Load and set saved position of UI, if available
+if isfile and readfile then
+	local YOffset = 49
+	local XOffset = 959
+	if isfile("FPS Position Y Offset.txt") then
+		YOffset = readfile("FPS Position Y Offset.txt")
+	end
+	if isfile("FPS Position X Offset.txt") then
+		XOffset = readfile("FPS Position X Offset.txt")
+	end
+	
+	local Position = UDim2.new(0,XOffset,0,YOffset)
+	FPSUI.Main.Position = Position
+end
+
+-- Animate UI when added
+local transitionInfo = TweenInfo.new(0.8, Enum.EasingStyle.Back)
+local tween = TweenService:Create(FPSUI.Main, transitionInfo, {BackgroundTransparency = 0.8})
+tween:Play()
+local transitionInfo = TweenInfo.new(0.8, Enum.EasingStyle.Back)
+local tween = TweenService:Create(FPSUI.Main.Title, transitionInfo, {TextTransparency = 0.4})
+tween:Play()
+
+
+-- Make UI Draggable
+local function MakeDraggable(objecttodragfrom, object) 
+	pcall(function()
+		local dragging = false
+		local dragInput, mousePos, framePos
+
+		objecttodragfrom.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				dragging = true
+				DR = true
+				mousePos = input.Position
+				framePos = object.Position
+
+				input.Changed:Connect(function()
+					if input.UserInputState == Enum.UserInputState.End then
+						dragging = false
+					end
+				end)
+			end
+		end)
+
+		objecttodragfrom.InputChanged:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseMovement then
+				dragInput = input
+			end
+		end)
+
+		UserInputService.InputChanged:Connect(function(input)
+			if input == dragInput and dragging then
+				local delta = input.Position - mousePos
+				local transitionInfo = TweenInfo.new(0.4, Enum.EasingStyle.Quint)
+				local tween = TweenService:Create(object, transitionInfo, {Position = UDim2.new(0, framePos.X.Offset + delta.X, 0, framePos.Y.Offset + delta.Y)})
+				tween:Play()
+				wait(0.1)
+			end
+		end)
+	end)
+end
+
+MakeDraggable(FPSUI.Main,FPSUI.Main)
+
+-- Set UI Effects when Hovered Over
+FPSUI.Main.MouseEnter:Connect(function()
+	local transitionInfo = TweenInfo.new(0.8, Enum.EasingStyle.Quint)
+	local tween = TweenService:Create(FPSUI.Main, transitionInfo, {BackgroundTransparency = 0.4})
+	tween:Play()
+	local transitionInfo = TweenInfo.new(0.8, Enum.EasingStyle.Quint)
+	local tween = TweenService:Create(FPSUI.Main.Title, transitionInfo, {TextTransparency = 0.1})
+	tween:Play()
+end)
+
+FPSUI.Main.MouseLeave:Connect(function()
+	local transitionInfo = TweenInfo.new(0.8, Enum.EasingStyle.Quint)
+	local tween = TweenService:Create(FPSUI.Main, transitionInfo, {BackgroundTransparency = 0.8})
+	tween:Play()
+	local transitionInfo = TweenInfo.new(0.8, Enum.EasingStyle.Quint)
+	local tween = TweenService:Create(FPSUI.Main.Title, transitionInfo, {TextTransparency = 0.4})
+	tween:Play()
+end)
+
+
+-- FPS counter for BETA
+local FPSLabel = FPSUI.Main.Title
+local Heartbeat = game:GetService("RunService").Heartbeat
+
+local LastIteration, Start
+local FrameUpdateTable = { }
+
+local function HeartbeatUpdate()
+	LastIteration = tick()
+	for Index = #FrameUpdateTable, 1, -1 do
+		FrameUpdateTable[Index + 1] = (FrameUpdateTable[Index] >= LastIteration - 1) and FrameUpdateTable[Index] or nil
+	end
+	FrameUpdateTable[1] = LastIteration
+	local CurrentFPS = (tick() - Start >= 1 and #FrameUpdateTable) or (#FrameUpdateTable / (tick() - Start))
+	CurrentFPS = math.floor(CurrentFPS)
+	
+	FPSLabel.Text = tostring(CurrentFPS).." FPS"
+end
+
+Start = tick()
+local BetaFPSConnection = Heartbeat:Connect(HeartbeatUpdate)
+
+-- Save position of UI
+local BetaPositionSaver = task.spawn(function()
+	while true do
+		task.wait(2)
+		writefile("FPS Position Y Offset.txt",FPSUI.Main.Position.Y.Offset)
+		writefile("FPS Position X Offset.txt",FPSUI.Main.Position.X.Offset)
+	end
+end)
+
+fpsViewerDropdown = tabs.Modules:CreateDropdown({
     Name = "FPS Viewer",
     SectionParent = modulesPerformanceSection,
-        Flag = "FPSViewer",
-    CurrentValue = false,
-    Callback = function(enabled)
-    local fpsLabel, pingLabel, fpsConnection, pingConnection
-        if enabled then
-            fpsLabel = Instance.new("TextLabel")
+    Options = {"None", "FPS Viewer LITE", "FPS Viewer BETA"},
+    Flag = "FPSViewerMode",
+    CurrentOption = "None",
+    Callback = function(selection)
+        -- Disable all existing FPS counters
+        if fpsLabel then
+            fpsLabel:Destroy()
+            fpsLabel = nil
+        end
+         if pingLabel then
+                pingLabel:Destroy()
+                pingLabel = nil
+            end
+        if fpsConnection then
+            fpsConnection:Disconnect()
+            fpsConnection = nil
+        end
+        if pingConnection then
+                pingConnection:Disconnect()
+                pingConnection = nil
+            end
+		FPSUI.Main.Visible = false
+		BetaPositionSaver:Cancel()
+		BetaFPSConnection:Disconnect()
+        -- Enable the selected FPS counter
+        if selection == "FPS Viewer LITE" then
+			fpsLabel = Instance.new("TextLabel")
             fpsLabel.Size = UDim2.new(0, 200, 0, 50)
             fpsLabel.Position = UDim2.new(0, 10, 0, 10)
             fpsLabel.BackgroundTransparency = 0.5
@@ -90,25 +244,16 @@ fpsPingToggle = tabs.Modules:CreateToggle({
             pingConnection = game:GetService("RunService").Heartbeat:Connect(function()
                 pingLabel.Text = "Ping: " .. math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()) .. " ms"
             end)
-    
-            getgenv().FPSPingConnections = {fpsConnection, pingConnection}
-           getgenv().FPSTextLabel = fpsLabel
-            getgenv().PingTextLabel = pingLabel
-        else
-           if getgenv().FPSTextLabel then
-                getgenv().FPSTextLabel:Destroy()
-                getgenv().FPSTextLabel = nil
-            end
-            if getgenv().PingTextLabel then
-                getgenv().PingTextLabel:Destroy()
-                getgenv().PingTextLabel = nil
-            end
-              if getgenv().FPSPingConnections then
-                for _, connection in pairs(getgenv().FPSPingConnections) do
-                    connection:Disconnect()
-                end
-                getgenv().FPSPingConnections = nil
-            end
+        elseif selection == "FPS Viewer BETA" then
+			FPSUI.Main.Visible = true
+			BetaFPSConnection = Heartbeat:Connect(HeartbeatUpdate)
+			BetaPositionSaver = task.spawn(function()
+				while true do
+					task.wait(2)
+					writefile("FPS Position Y Offset.txt",FPSUI.Main.Position.Y.Offset)
+					writefile("FPS Position X Offset.txt",FPSUI.Main.Position.X.Offset)
+				end
+			end)
         end
     end,
 })
