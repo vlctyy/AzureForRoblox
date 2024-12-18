@@ -1,50 +1,29 @@
 -- Azure: Bloxstrap for Mobile
 -- discord.gg/azrdev
 
--- Load up ArrayField, the UI lib
-local ArrayField = loadstring(game:HttpGet('https://raw.githubusercontent.com/UI-Interface/ArrayField/main/Source.lua'))()
+local ArrayField = loadstring(game:HttpGet('https://raw.githubusercontent.com/UI-Interface/ArrayField/main/Source'))()
 
--- Create the main window for the UI
 local Window = ArrayField:CreateWindow({
-    Name = "Azure Utility", -- Name of the window
-    LoadingTitle = "Azure Utility", -- Loading screen title
-    LoadingSubtitle = "by wavezq", -- Loading screen subtitle
-        ConfigurationSaving = { -- Config saving stuff
-            Enabled = true, -- Enable config saving
-			FolderName = "AzureSaves", -- Custom folder for saves
-            FileName = "AzureConfig" -- The name of the save file
+    Name = "Azure Utility",
+    LoadingTitle = "Azure Utility",
+    LoadingSubtitle = "by wavezq",
+        ConfigurationSaving = {
+            Enabled = false,
         },
-        Discord = { -- Discord stuff
-            Enabled = true, -- Enable Discord integration
-            Invite = "rPqV5Nhc8a", -- Discord invite code
-            RememberJoins = true -- Remember if the user joined the discord already
+        Discord = {
+            Enabled = true,
+            Invite = "rPqV5Nhc8a",
+            RememberJoins = true
         },
-     KeySystem = true, -- Enable the Key System
-     KeySettings = { -- Key settings
-        Title = "Azure Utility", -- Key system title
-        Subtitle = "Key System", -- Key system subtitle
-        Note = "Complete the Linkvertise to get the key", -- Custom Note to Explain Key is from Linkvertise
-        FileName = "AzureKeys", -- Change the key file name if you want
-        SaveKey = true, -- Save the key
-        GrabKeyFromSite = true, -- Set to true to Grab the key from linkvertise
-        Key = "https://link-target.net/1267303/key-system-for-azure", -- Set the linkvertise url
-        Actions = {
-            [1] = {
-                Text = 'Click here to copy the key link',
-                    OnPress = function()
-                        setclipboard("https://link-target.net/1267303/key-system-for-azure") -- copies link
-                    end,
-            }
-        },
-    }
+     KeySystem = false, -- Disable the Key System
 })
 
--- Create the tabs for the UI
+
 local tabs = {
-    Dashboard = Window:CreateTab("Dashboard"), -- Main tab
-    Modules = Window:CreateTab("Modules"), -- Modules tab
-    Settings = Window:CreateTab("Settings"), -- Settings tab
-    About = Window:CreateTab("About"), -- About tab
+    Dashboard = Window:CreateTab("Dashboard"),
+    Modules = Window:CreateTab("Modules"),
+    Settings = Window:CreateTab("Settings"),
+    About = Window:CreateTab("About"),
 }
 
 -- Dashboard Section
@@ -52,11 +31,11 @@ local dashboardSection = tabs.Dashboard:CreateSection("Changelog", true)
 tabs.Dashboard:CreateParagraph({Title = "Changelog", Content = "🟢 Version 1.0 - Initial release\n🟡 Version 1.1 - Bug fixes\n🔴 Version 1.2 - Major update pending"}, dashboardSection)
 tabs.Dashboard:CreateSpacing(dashboardSection,10)
 tabs.Dashboard:CreateButton({
-    Name = "Join Discord", -- Button text
-    SectionParent = dashboardSection, -- Parent section
-    Callback = function() -- When the button is pressed, this is executed
-        setclipboard("https://discord.com/invite/rPqV5Nhc8a") -- Copy discord link to clipboard
-        ArrayField:Notify("Discord Invite Copied!", "success") -- Show a notification
+    Name = "Join Discord",
+    SectionParent = dashboardSection,
+    Callback = function()
+        setclipboard("https://discord.com/invite/rPqV5Nhc8a")
+        ArrayField:Notify("Discord Invite Copied!", "success")
     end,
 })
 
@@ -197,12 +176,12 @@ local BetaPositionSaver = task.spawn(function()
 end)
 
 fpsViewerDropdown = tabs.Modules:CreateDropdown({
-    Name = "FPS Viewer", -- Dropdown name
-    SectionParent = modulesPerformanceSection, -- Parent section
-    Options = {"None", "FPS Viewer LITE", "FPS Viewer BETA"}, -- Options in the dropdown
-    Flag = "FPSViewerMode", -- Flag for config saving
-    CurrentOption = "None", -- Default selected option
-    Callback = function(selection) -- When the option is changed, this executes
+    Name = "FPS Viewer",
+    SectionParent = modulesPerformanceSection,
+    Options = {"None", "FPS Viewer LITE", "FPS Viewer BETA"},
+    Flag = "FPSViewerMode",
+    CurrentOption = "None",
+    Callback = function(selection)
         -- Disable all existing FPS counters
         if fpsLabel then
             fpsLabel:Destroy()
@@ -263,25 +242,25 @@ fpsViewerDropdown = tabs.Modules:CreateDropdown({
 })
 
 tabs.Modules:CreateInput({
-    Name = "AutoClicker CPS", -- Input name
-    PlaceholderText = "8", -- Placeholder text
-    SectionParent = modulesPerformanceSection, -- Parent section
-	Flag = "AutoClickerCPS", -- Flag for config saving
-    NumbersOnly = true, -- Only allow numbers
-    OnEnter = true, -- Enter triggers callback
-    RemoveTextAfterFocusLost = true, -- Remove text when focus is lost
-    Callback = function(value) -- When the input is entered, this executes
-        getgenv().CPS = tonumber(value) -- Assign the inputted number to the CPS variable
+    Name = "AutoClicker CPS",
+    PlaceholderText = "8",
+    SectionParent = modulesPerformanceSection,
+	Flag = "AutoClickerCPS",
+    NumbersOnly = true,
+    OnEnter = true,
+    RemoveTextAfterFocusLost = true,
+    Callback = function(value)
+        getgenv().CPS = tonumber(value)
     end,
 })
 
 tabs.Modules:CreateToggle({
-    Name = "Enable AutoClicker", -- Toggle name
-    SectionParent = modulesPerformanceSection, -- Parent section
-        Flag = "AutoClicker", -- Flag for config saving
-    CurrentValue = false, -- Default toggle value
-    Callback = function(enabled) -- When the toggle is changed, this executes
-        getgenv().AutoClickerEnabled = enabled -- Assign the inputted value to the AutoClickerEnabled variable
+    Name = "Enable AutoClicker",
+    SectionParent = modulesPerformanceSection,
+        Flag = "AutoClicker",
+    CurrentValue = false,
+    Callback = function(enabled)
+        getgenv().AutoClickerEnabled = enabled
         if enabled then
             while getgenv().AutoClickerEnabled do
                 task.wait(1 / (getgenv().CPS or 8))
@@ -399,12 +378,12 @@ for k,v in pairs(Skyboxes) do
 end
 
 tabs.Modules:CreateDropdown({
-        Name = "Custom Skybox", -- Dropdown name
-        SectionParent = modulesCustomizationSection, -- Parent section
-        Options = skybox_names, -- Options in the dropdown
-         Flag = "CustomSkybox", -- Flag for config saving
-        CurrentOption = nil, -- Default selected option
-        Callback = function(selection) -- When the option is changed, this executes
+        Name = "Custom Skybox",
+        SectionParent = modulesCustomizationSection,
+        Options = skybox_names,
+         Flag = "CustomSkybox",
+        CurrentOption = nil,
+        Callback = function(selection)
             local Lighting = game:GetService("Lighting")
             local sky = Instance.new("Sky")
             local skybox = Skyboxes[selection]
@@ -422,12 +401,12 @@ tabs.Modules:CreateDropdown({
 local fpsBoostSection = tabs.Modules:CreateSection("FPS Boost", true)
 
 tabs.Modules:CreateToggle({
-    Name = "FPS Boost", -- Toggle name
-    SectionParent = fpsBoostSection, -- Parent section
-       Flag = "FPSBoost", -- Flag for config saving
-    CurrentValue = false, -- Default toggle value
-    Callback = function(Callback) -- When the toggle is changed, this executes
-        FPSBoostEnabled = Callback -- Assign the inputted value to the FPSBoostEnabled variable
+    Name = "FPS Boost",
+    SectionParent = fpsBoostSection,
+       Flag = "FPSBoost",
+    CurrentValue = false,
+    Callback = function(Callback)
+        FPSBoostEnabled = Callback
         if FPSBoostEnabled then
             fpsboosttextures()
             for i,v in next, (bedwars["KillEffectController"].killEffects) do
@@ -455,12 +434,12 @@ tabs.Modules:CreateToggle({
 })
 
 tabs.Modules:CreateToggle({
-    Name = "Remove Textures", -- Toggle name
-    SectionParent = fpsBoostSection, -- Parent section
-       Flag = "RemoveTextures", -- Flag for config saving
-    CurrentValue = true, -- Default toggle value
-    Callback = function(Callback) -- When the toggle is changed, this executes
-        FPSBoostTextureEnabled = Callback -- Assign the inputted value to the FPSBoostTextureEnabled variable
+    Name = "Remove Textures",
+    SectionParent = fpsBoostSection,
+       Flag = "RemoveTextures",
+    CurrentValue = true,
+    Callback = function(Callback)
+        FPSBoostTextureEnabled = Callback
     end,
 })
 
@@ -485,12 +464,12 @@ local function fpsboosttextures()
 end
 
 tabs.Modules:CreateToggle({
-    Name = "FPS Unlocker", -- Toggle name
-    SectionParent = fpsBoostSection, -- Parent section
-       Flag = "FPSUnlocker", -- Flag for config saving
-    CurrentValue = false, -- Default toggle value
-    Callback = function(Callback) -- When the toggle is changed, this executes
-        EnabledFPS = Callback -- Assign the inputted value to the EnabledFPS variable
+    Name = "FPS Unlocker",
+    SectionParent = fpsBoostSection,
+       Flag = "FPSUnlocker",
+    CurrentValue = false,
+    Callback = function(Callback)
+        EnabledFPS = Callback
         if EnabledFPS then
             setfpscap(999)
         end
@@ -501,12 +480,12 @@ tabs.Modules:CreateToggle({
 local chatTagSection = tabs.Modules:CreateSection("Chat Tag", true)
 
 tabs.Modules:CreateToggle({
-    Name = "Azure User Chat Tag", -- Toggle name
-    SectionParent = chatTagSection, -- Parent section
-       Flag = "ChatTag", -- Flag for config saving
-    CurrentValue = false, -- Default toggle value
-    Callback = function(Callback) -- When the toggle is changed, this executes
-        AzureTagEnabled = Callback -- Assign the inputted value to the AzureTagEnabled variable
+    Name = "Azure User Chat Tag",
+    SectionParent = chatTagSection,
+       Flag = "ChatTag",
+    CurrentValue = false,
+    Callback = function(Callback)
+        AzureTagEnabled = Callback
         local Players = game:GetService("Players")
         local LocalPlayer = Players.LocalPlayer
         local TextChatService = game:GetService("TextChatService")
