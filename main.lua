@@ -1,7 +1,7 @@
 -- Azure: Bloxstrap for Mobile
 -- discord.gg/azrdev
 
-local ArrayField = loadstring(game:HttpGet('https://raw.githubusercontent.com/UI-Interface/ArrayField/main/Source'))()
+local ArrayField = loadstring(game:HttpGet('https://raw.githubusercontent.com/UI-Interface/ArrayField/main/Source.lua'))()
 
 local Window = ArrayField:CreateWindow({
     Name = "Azure Utility",
