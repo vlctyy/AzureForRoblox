@@ -1,3 +1,3 @@
-# Azure V1.1
+# Wave V2
 
 release soon...
